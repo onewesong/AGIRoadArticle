@@ -1,3 +1,5 @@
 .cursorrules
+.env
+.env.fish
 wechat_html/
 __pycache__/

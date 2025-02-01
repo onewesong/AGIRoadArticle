@@ -48,11 +48,10 @@ def convert_md_to_wechat(md_file_path, output_dir='wechat_html'):
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(html_content)
     
-    print(f"\n提示: 请查看 {output_dir}/upload_guide.md 获取图片上传指南")
     return output_file
 
 def process_images(html_content, md_file_path, output_dir):
-    """处理文章中的图片,生成上传清单"""
+    """处理文章中的图片,上传并替换图片链接"""
     md_dir = Path(md_file_path).parent
     img_pattern = r'<img[^>]*src="([^"]*)"[^>]*>'
     
@@ -68,56 +67,68 @@ def process_images(html_content, md_file_path, output_dir):
         abs_img_path = md_dir / img_path
         if not abs_img_path.exists():
             return match.group(0)
-        
-        # 复制图片到输出目录
-        img_output_dir = Path(output_dir) / 'images'
-        os.makedirs(img_output_dir, exist_ok=True)
-        new_img_path = img_output_dir / abs_img_path.name
-        shutil.copy2(abs_img_path, new_img_path)
-        
+            
         # 记录需要上传的图片
-        images_to_upload.append({
-            'file_path': str(new_img_path),
-            'original_name': abs_img_path.name
-        })
+        images_to_upload.append(str(abs_img_path))
         
-        # 使用实际的图片路径而不是占位符
-        relative_path = os.path.relpath(new_img_path, output_dir)
-        return f'<img src="{relative_path}" style="max-width:100%;height:auto;">'
+        # 暂时使用原始文件名作为占位符
+        return f'<img src="{{{{IMAGE_PLACEHOLDER_{abs_img_path.name}}}}}" style="max-width:100%;height:auto;">'
     
     html_content = re.sub(img_pattern, replace_img, html_content)
     
-    # 生成图片上传指南
+    # 如果有图片需要上传
     if images_to_upload:
-        upload_guide = generate_upload_guide(images_to_upload)
-        with open(Path(output_dir) / 'upload_guide.md', 'w', encoding='utf-8') as f:
-            f.write(upload_guide)
+        try:
+            # 调用上传脚本
+            image_urls = upload_images(images_to_upload)
+            
+            # 替换占位符为实际的图片URL
+            for img_path in images_to_upload:
+                img_name = Path(img_path).name
+                if img_name in image_urls:
+                    placeholder = f'{{{{IMAGE_PLACEHOLDER_{img_name}}}}}'
+                    html_content = html_content.replace(placeholder, image_urls[img_name])
+        except Exception as e:
+            print(f"警告: 图片上传失败 - {str(e)}")
+            # 如果上传失败，使用本地图片路径
+            for img_path in images_to_upload:
+                img_name = Path(img_path).name
+                placeholder = f'{{{{IMAGE_PLACEHOLDER_{img_name}}}}}'
+                html_content = html_content.replace(placeholder, f'images/{img_name}')
     
     return html_content
 
-def generate_upload_guide(images):
-    """生成图片上传指南"""
-    guide = """# 微信图片上传指南
-
-请按照以下步骤操作:
-
-1. 打开微信公众号后台
-2. 进入"素材管理" -> "图片素材"
-3. 按顺序上传以下图片:
-
-"""
-    for i, img in enumerate(images, 1):
-        guide += f"\n## 图片 {i}\n"
-        guide += f"- 文件路径: {img['file_path']}\n"
-        guide += f"- 原始文件名: {img['original_name']}\n"
+def upload_images(image_paths):
+    """调用upload_image.sh脚本上传图片"""
+    import subprocess
+    import os
+    import json
     
-    guide += """
-\n## 注意事项
-- 请按顺序上传图片
-- 建议在预览模式下检查图片是否正确显示
-- 图片上传后会自动压缩,可在预览中确认效果
-"""
-    return guide
+    # 获取IMAGE_SRC_PREFIX环境变量
+    image_src_prefix = os.getenv('IMAGE_SRC_PREFIX')
+    if not image_src_prefix:
+        raise ValueError("环境变量 IMAGE_SRC_PREFIX 未设置")
+    
+    # 准备上传脚本路径
+    script_path = Path(__file__).parent / 'upload_image.sh'
+    if not script_path.exists():
+        raise FileNotFoundError(f"上传脚本不存在: {script_path}")
+    
+    # 调用上传脚本
+    try:
+        cmd = [str(script_path)] + image_paths
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        
+        # 处理上传结果
+        image_urls = {}
+        for img_path in image_paths:
+            img_name = Path(img_path).name
+            image_urls[img_name] = f"{image_src_prefix}/{img_name}"
+            
+        return image_urls
+        
+    except subprocess.CalledProcessError as e:
+        raise Exception(f"图片上传失败: {e.stderr}")
 
 def process_links_to_footnotes(html_content):
     """将外部链接转换为脚注格式"""
