@@ -15,7 +15,7 @@
 
 ## 文章列表
 ### 技术探索
-- [让AI助手"心口合一" - 为DeepSeek Chat添加思考过程展示](articles/DeepSeek-web-interface-think-different-style.md) 2025-02-14
+- [🤔 AI也要学会"不动声色" - DeepSeek Chat思考过程可视化实战](articles/DeepSeek-web-interface-think-different-style.md) 2025-02-14
 - [10分钟打造高颜值AI对话界面 - DeepSeek + Streamlit实战](articles/DeepSeek-web-interface.md) 2025-02-07
 - [手把手教你在家养一只DeepSeek大模型](articles/DeepSeek-local-deploy.md) 2025-01-31
 

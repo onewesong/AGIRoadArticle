@@ -1,5 +1,5 @@
 ---
-title: 让AI助手"心口合一" - 为DeepSeek Chat添加思考过程展示
+title: 🤔 AI也要学会"不动声色" - DeepSeek Chat思考过程可视化实战
 date: 2025-02-14
 category: 技术探索
 tags: [DeepSeek, Streamlit, CSS, AI实战]
@@ -7,9 +7,9 @@ tags: [DeepSeek, Streamlit, CSS, AI实战]
 
 ## 开篇碎碎念
 
-还记得上次我们一起打造的DeepSeek Chat界面吗？虽然功能已经很不错了，但总感觉AI像个"闷葫芦"，想什么说什么全都一股脑儿往外冒。今天，我们就来给它加个"过滤器"，让它的思考过程和回答更有条理！
+你有没有觉得DeepSeek深度推理时有时候像个"话痨"，想到什么说什么，让人眼花缭乱？🤪
 
-想象一下，如果你在餐厅点菜，厨师一边念叨"我要先切菜，然后放油..."一边给你上菜，是不是感觉怪怪的？所以今天我们要教会AI如何优雅地展示它的"烹饪过程"。
+还记得上次我们一起打造的DeepSeek Chat界面吗？今天，我们要教会它"深思熟虑"的艺术，让它像个优雅的绅士一样，把思考过程整整齐齐地收起来，需要的时候才优雅展开~
 
 ## 设计灵感
 
@@ -25,7 +25,7 @@ tags: [DeepSeek, Streamlit, CSS, AI实战]
 
 首先创建`styles.py`文件，这就是我们的"时装设计图"：
 
-```python:styles.py
+```python
 import streamlit as st
 
 def set_think_style():
@@ -86,7 +86,7 @@ def set_think_style():
 
 现在修改`app.py`，教会AI如何优雅地展示思考过程：
 
-```python:app.py
+```python
 # ... 前面的代码保持不变 ...
 
 # 引入我们的"时装设计图"
@@ -137,7 +137,7 @@ with st.chat_message("assistant"):
 
 现在，当AI回答问题时，它的思考过程会被优雅地收纳起来。比如：
 
-![DeepSeekChatThinkDifferentStyle](DeepSeekChatThinkDifferentStyle.png)
+![DeepSeekChatThinkDifferentStyle](./assets/DeepSeekChatThinkDifferentStyle.png)
 
 看！是不是感觉AI更有条理了？思考过程默默地躲在一个精致的折叠区域里，需要的时候轻轻一碰就能展开，不需要时也不会占太多空间。
 
