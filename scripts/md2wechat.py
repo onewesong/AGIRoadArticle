@@ -114,20 +114,38 @@ def upload_images(image_paths):
     if not script_path.exists():
         raise FileNotFoundError(f"上传脚本不存在: {script_path}")
     
+    print("\n开始上传图片...")
+    print(f"- 图片数量: {len(image_paths)}")
+    
     # 调用上传脚本
     try:
         cmd = [str(script_path)] + image_paths
+        
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        
+        if result.stdout:
+            print("- 上传输出:")
+            print(result.stdout)
         
         # 处理上传结果
         image_urls = {}
         for img_path in image_paths:
             img_name = Path(img_path).name
-            image_urls[img_name] = f"{image_src_prefix}/{img_name}"
+            image_url = f"{image_src_prefix}/{img_name}"
+            image_urls[img_name] = image_url
+            print(f"✓ {img_name} -> {image_url}")
             
+        print("图片上传完成!\n")
         return image_urls
         
     except subprocess.CalledProcessError as e:
+        print("× 上传失败!")
+        if e.stdout:
+            print("- 标准输出:")
+            print(e.stdout)
+        if e.stderr:
+            print("- 错误输出:")
+            print(e.stderr)
         raise Exception(f"图片上传失败: {e.stderr}")
 
 def process_links_to_footnotes(html_content):
