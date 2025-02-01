@@ -12,13 +12,18 @@ def convert_md_to_wechat(md_file_path, output_dir='wechat_html'):
     with open(md_file_path, 'r', encoding='utf-8') as f:
         md_content = f.read()
     
-    # 创建 Markdown 转换器
+    # 预处理 Markdown 内容，确保列表格式正确
+    md_content = preprocess_markdown(md_content)
+    
+    # 创建 Markdown 转换器，添加额外的扩展
     md = markdown.Markdown(extensions=[
         'meta',
         'tables',
         'fenced_code',
         'codehilite',
-        'toc'
+        'toc',
+        'nl2br',        # 添加换行支持
+        'sane_lists',   # 添加更好的列表支持
     ])
     
     # 转换 Markdown 为 HTML
@@ -73,12 +78,12 @@ def process_images(html_content, md_file_path, output_dir):
         # 记录需要上传的图片
         images_to_upload.append({
             'file_path': str(new_img_path),
-            'placeholder': f'{{{{图片_{len(images_to_upload)+1}}}}}',
             'original_name': abs_img_path.name
         })
         
-        # 使用占位符替换图片
-        return f'<img src="{images_to_upload[-1]["placeholder"]}" style="max-width:100%;height:auto;">'
+        # 使用实际的图片路径而不是占位符
+        relative_path = os.path.relpath(new_img_path, output_dir)
+        return f'<img src="{relative_path}" style="max-width:100%;height:auto;">'
     
     html_content = re.sub(img_pattern, replace_img, html_content)
     
@@ -105,11 +110,10 @@ def generate_upload_guide(images):
         guide += f"\n## 图片 {i}\n"
         guide += f"- 文件路径: {img['file_path']}\n"
         guide += f"- 原始文件名: {img['original_name']}\n"
-        guide += f"- 上传后将文章中的 `{img['placeholder']}` 替换为上传后的图片\n"
     
     guide += """
 \n## 注意事项
-- 请按顺序上传图片并替换占位符
+- 请按顺序上传图片
 - 建议在预览模式下检查图片是否正确显示
 - 图片上传后会自动压缩,可在预览中确认效果
 """
@@ -178,6 +182,50 @@ def wrap_with_style(html_content):
             border: 1px solid #e8e8e8;
             white-space: pre-wrap;
             word-wrap: break-word;
+            position: relative;
+            font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+        }
+        
+        /* 代码语言标签 */
+        .highlight::before {
+            content: attr(data-language);
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 2px 8px;
+            font-size: 12px;
+            color: #666;
+            background: #e8e8e8;
+            border-radius: 0 4px 0 4px;
+        }
+        
+        /* 代码高亮样式 */
+        .highlight .keyword { color: #c678dd; }  /* 关键字 */
+        .highlight .builtin { color: #56b6c2; }  /* 内置函数 */
+        .highlight .string { color: #98c379; }   /* 字符串 */
+        .highlight .number { color: #d19a66; }   /* 数字 */
+        .highlight .comment { color: #5c6370; font-style: italic; }  /* 注释 */
+        .highlight .operator { color: #56b6c2; } /* 运算符 */
+        .highlight .function { color: #61afef; } /* 函数名 */
+        .highlight .class { color: #e5c07b; }    /* 类名 */
+        .highlight .variable { color: #e06c75; } /* 变量 */
+        
+        /* 特定语言的样式 */
+        .language-python .decorator { color: #56b6c2; }
+        .language-javascript .regex { color: #98c379; }
+        .language-html .tag { color: #e06c75; }
+        .language-html .attr { color: #d19a66; }
+        .language-css .property { color: #56b6c2; }
+        .language-css .value { color: #98c379; }
+        
+        /* 行内代码样式 */
+        code:not(.highlight code) {
+            background: #f3f3f3;
+            padding: 2px 5px;
+            border-radius: 3px;
+            color: #e96900;
+            font-family: Consolas, Monaco, monospace;
+            font-size: 0.9em;
         }
         
         /* 引用块样式 */
@@ -197,6 +245,7 @@ def wrap_with_style(html_content):
             font-weight: bold;
             border-bottom: 1px solid #eee;
             padding-bottom: 10px;
+            color: #2c3e50;  /* 深蓝灰色 */
         }
         
         h2 {
@@ -204,6 +253,7 @@ def wrap_with_style(html_content):
             margin-top: 30px;
             margin-bottom: 15px;
             font-weight: bold;
+            color: #34495e;  /* 稍浅的蓝灰色 */
         }
         
         h3 {
@@ -211,12 +261,95 @@ def wrap_with_style(html_content):
             margin-top: 20px;
             margin-bottom: 10px;
             font-weight: bold;
+            color: #3498db;  /* 蓝色 */
         }
         
-        /* 列表样式优化 */
+        h4 {
+            font-size: 16px;
+            margin-top: 15px;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2980b9;  /* 深蓝色 */
+        }
+        
+        /* 加粗文本样式 */
+        strong {
+            color: #e67e22;  /* 橙色 */
+            font-weight: bold;
+            padding: 0 2px;  /* 左右添加小间距 */
+        }
+        
+        /* 强调文本悬停效果 */
+        strong:hover {
+            background-color: rgba(230, 126, 34, 0.1);  /* 橙色背景，低透明度 */
+            border-radius: 2px;
+            transition: background-color 0.3s ease;
+        }
+        
+        /* 标题悬停效果 */
+        h1:hover, h2:hover, h3:hover, h4:hover {
+            background: linear-gradient(to right, rgba(52, 152, 219, 0.1), transparent);
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+        
+        /* 标题前的装饰 */
+        h2::before {
+            content: "##";
+            color: #bdc3c7;
+            margin-right: 8px;
+            font-weight: normal;
+            opacity: 0.6;
+        }
+        
+        h3::before {
+            content: "###";
+            color: #bdc3c7;
+            margin-right: 8px;
+            font-weight: normal;
+            opacity: 0.6;
+        }
+        
+        /* 增强列表样式 */
         ul, ol {
             padding-left: 28px;
             margin: 15px 0;
+            list-style-position: outside;
+        }
+        
+        ul li, ol li {
+            margin: 8px 0;
+            line-height: 1.6;
+            position: relative;
+            display: list-item !important;
+            text-align: -webkit-match-parent;
+        }
+        
+        ul li {
+            list-style: disc !important;
+        }
+        
+        ul ul li {
+            list-style: circle !important;
+        }
+        
+        ul ul ul li {
+            list-style: square !important;
+        }
+        
+        ol li {
+            list-style: decimal !important;
+        }
+        
+        /* 确保列表项之间有足够的间距 */
+        li + li {
+            margin-top: 8px;
+        }
+        
+        /* 确保列表项内容正确换行 */
+        li p {
+            margin: 0;
+            display: inline-block;
         }
         
         /* 链接样式 */
@@ -253,21 +386,6 @@ def wrap_with_style(html_content):
             font-weight: bold;
         }
         
-        /* 行内代码样式 */
-        code {
-            background: #f3f3f3;
-            padding: 2px 5px;
-            border-radius: 3px;
-            color: #e96900;
-            font-family: Consolas, monospace;
-        }
-        
-        /* 段落间距优化 */
-        p {
-            margin: 15px 0;
-            line-height: 1.8;
-        }
-        
         /* 脚注样式 */
         sup {
             font-size: 12px;
@@ -279,18 +397,25 @@ def wrap_with_style(html_content):
             border: none;
             border-top: 1px solid #eee;
         }
-        
-        /* 脚注列表样式 */
-        ol li {
-            color: #666;
-            font-size: 14px;
-            margin: 8px 0;
-        }
     </style>
     """
     
-    # 处理代码块的语法高亮
-    html_content = html_content.replace('<pre><code>', '<pre class="highlight"><code>')
+    def process_code_blocks(html):
+        """处理代码块，添加语言标识和高亮"""
+        # 匹配代码块的正则表达式
+        code_block_pattern = r'<pre class="highlight"><code class="language-([^"]+)">(.*?)</code></pre>'
+        
+        def replace_code_block(match):
+            language = match.group(1)
+            code = match.group(2)
+            
+            # 添加语言标识和类名
+            return f'<pre class="highlight language-{language}" data-language="{language}"><code class="language-{language}">{code}</code></pre>'
+        
+        return re.sub(code_block_pattern, replace_code_block, html, flags=re.DOTALL)
+    
+    # 处理代码块
+    html_content = process_code_blocks(html_content)
     
     template = f"""
     <!DOCTYPE html>
@@ -299,6 +424,16 @@ def wrap_with_style(html_content):
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         {css}
+        <!-- 添加 highlight.js 支持 -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', (event) => {{
+                document.querySelectorAll('pre code').forEach((block) => {{
+                    hljs.highlightBlock(block);
+                }});
+            }});
+        </script>
     </head>
     <body>
         <div class="wechat-article">
@@ -312,6 +447,27 @@ def wrap_with_style(html_content):
     """
     
     return template
+
+def preprocess_markdown(content):
+    """预处理 Markdown 内容，确保列表格式正确"""
+    lines = content.split('\n')
+    processed_lines = []
+    
+    for i, line in enumerate(lines):
+        # 处理列表项
+        if line.strip().startswith('- '):
+            # 如果前一行不是空行且不是列表项，添加一个空行
+            if i > 0 and not lines[i-1].strip() == '' and not lines[i-1].strip().startswith('- '):
+                processed_lines.append('')
+            # 确保列表项有正确的缩进和格式
+            processed_lines.append(line)
+            # 如果下一行不是列表项且不是空行，添加一个空行
+            if i < len(lines)-1 and not lines[i+1].strip().startswith('- ') and not lines[i+1].strip() == '':
+                processed_lines.append('')
+        else:
+            processed_lines.append(line)
+    
+    return '\n'.join(processed_lines)
 
 if __name__ == '__main__':
     import sys
