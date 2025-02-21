@@ -272,9 +272,23 @@ def wrap_with_style(html_content):
             margin-top: 40px;
             margin-bottom: 20px;
             font-weight: bold;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
             color: #2c3e50;  /* 深蓝灰色 */
+            text-align: center;  /* 居中对齐 */
+            position: relative;  /* 为after伪元素定位 */
+            padding-bottom: 15px;  /* 为下划线留出空间 */
+        }
+        
+        /* 添加标题下划线装饰 */
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);  /* 居中对齐 */
+            width: 80px;  /* 下划线宽度 */
+            height: 3px;  /* 下划线厚度 */
+            background: linear-gradient(to right, #42b983, #3498db);  /* 渐变色下划线 */
+            border-radius: 2px;  /* 圆角 */
         }
         
         h2 {
@@ -283,6 +297,22 @@ def wrap_with_style(html_content):
             margin-bottom: 15px;
             font-weight: bold;
             color: #34495e;  /* 稍浅的蓝灰色 */
+            text-align: center;  /* 居中对齐 */
+            position: relative;  /* 为after伪元素定位 */
+            padding-bottom: 12px;  /* 为下划线留出空间 */
+        }
+        
+        /* 二级标题下划线装饰 */
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;  /* 比h1的下划线短一些 */
+            height: 2px;  /* 比h1的下划线细一些 */
+            background: #42b983;  /* 使用单色而不是渐变 */
+            border-radius: 1px;
         }
         
         h3 {
@@ -291,6 +321,7 @@ def wrap_with_style(html_content):
             margin-bottom: 10px;
             font-weight: bold;
             color: #3498db;  /* 蓝色 */
+            text-align: center;  /* 添加居中对齐 */
         }
         
         h4 {
@@ -299,6 +330,7 @@ def wrap_with_style(html_content):
             margin-bottom: 8px;
             font-weight: bold;
             color: #2980b9;  /* 深蓝色 */
+            text-align: center;  /* 添加居中对齐 */
         }
         
         /* 加粗文本样式 */
@@ -324,19 +356,13 @@ def wrap_with_style(html_content):
         
         /* 标题前的装饰 */
         h2::before {
-            content: "##";
-            color: #bdc3c7;
-            margin-right: 8px;
-            font-weight: normal;
-            opacity: 0.6;
+            content: "";  /* 移除 ## */
+            margin-right: 0;  /* 移除右边距 */
         }
         
         h3::before {
-            content: "###";
-            color: #bdc3c7;
-            margin-right: 8px;
-            font-weight: normal;
-            opacity: 0.6;
+            content: "";  /* 移除 ### */
+            margin-right: 0;  /* 移除右边距 */
         }
         
         /* 增强列表样式 */
