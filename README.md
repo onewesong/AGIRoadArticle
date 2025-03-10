@@ -15,6 +15,7 @@
 
 ## 文章列表
 ### 技术探索
+- [Manus AI揭秘：探索自主AI代理的内部机制 🤖](articles/Manus-Prompt-Reveal.md) 2025-03-21
 - [🎭 一键变身！让你的AI助手玩转多重角色 - DeepSeek角色扮演实战](articles/DeepSeek-role-play.md) 2025-02-21
 - [🤔 AI也要学会"不动声色" - DeepSeek Chat思考过程可视化实战](articles/DeepSeek-web-interface-think-different-style.md) 2025-02-14
 - [10分钟打造高颜值AI对话界面 - DeepSeek + Streamlit实战](articles/DeepSeek-web-interface.md) 2025-02-07
